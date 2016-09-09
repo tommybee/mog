@@ -1,0 +1,6 @@
+Initializing SDL video subsystem.
+SDL driver used: CGX
+SDL video subsystem initialized.
+Initializing SDL audio subsystem.
+SDL audio subsystem initialized.
+Set the video resolution to: 640x400x8

@@ -1,0 +1,79 @@
+EXE = mog
+SRC = sources
+PREFIX = /progdir
+EXTRADIR = ./build/linux
+
+GAMEDIR = $(PREFIX)/games
+STARTUP = $(GAMEDIR)/$(EXE)
+BINDIR = $(PREFIX)/share/games/$(EXE)
+ICNDIR = $(PREFIX)/share/pixmaps
+APPDIR = $(PREFIX)/share/applications
+
+DATA = graphics rooms sound leeme.txt liesmich.txt readme.txt MoG-FAQ.txt LICENSE
+ICON = mog.png
+DESKTOP = mog.desktop
+
+OBJS = \
+	$(SRC)/bitmaps.o		$(SRC)/debug-report.o		\
+	$(SRC)/demons.o			$(SRC)/drawing.o			\
+	$(SRC)/filehandling.o	$(SRC)/gameaux.o			\
+	$(SRC)/gamecycle.o		$(SRC)/gameinteractions.o	\
+	$(SRC)/gameobjects.o	$(SRC)/gametiles.o			\
+	$(SRC)/ingamecycle.o	$(SRC)/keyboard.o			\
+	$(SRC)/line_clip.o		$(SRC)/loadpcx.o			\
+	$(SRC)/main.o			$(SRC)/passwords.o			\
+	$(SRC)/path.o			$(SRC)/debug.o				\
+	$(SRC)/render.o			$(SRC)/roomchange.o			\
+	$(SRC)/shrines.o		$(SRC)/sound.o
+
+CC = g++
+CFLAGS = -g3 -O3 -Wno-write-strings `sdl-config --cflags`
+#LDFLAGS = -lSDL_image -ljpeg -lpng -lz -lSDL_mixer -lvorbisfile -lvorbis -logg -lSDL -s -nix --prefix "/progdir"
+#LDFLAGS = -lSDL_image -ljpeg -lpng -lz -lSDL_mixer -lvorbisfile -lvorbis -logg -lSDL -s --prefix "/progdir"
+LDFLAGS = -static -lSDL_image -ljpeg -lpng -lz -lSDL_mixer -lvorbisfile -lvorbis -logg -lSDL -s -lmodplug -lmikmod -logg -lvorbisfile -lvorbis -lsmpeg2 -lsmpeg -lfluidsynth -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -luuid -lversion -lfreetype -lharfbuzz -lbz2 -lglib-2.0 -lintl -lharfbuzz-gobject -lharfbuzz-icu -liconv -ltiff -ljpeg -llzma -lpng16 -lstdc++ -lwebp -lwinpthread -lz -larchive -lwinmm -lgdi32 -ldxguid -lasprintf -lcharset -lcrypto -lcurl -lexpat -lffi -lFLAC++ -lFLAC -lfontconfig -lformw -lfreeglut_static -lgdbm -lgettextlib -lgettextpo -lgif -lgio-2.0 -lglew32 -lglew32mx -lgmodule-2.0 -lgmp -lgmpxx -lgnurx -lgnutls -lgnutlsxx -lgobject-2.0 -lgthread-2.0 -lhistory -lhogweed -lidn -lisl -ljansson  -ljsoncpp -llua  -llzo2  -lmenuw -lmetalink -lminizip -lmpc -lmpfr -lnettle -lnghttp2 -logg -lopenal -lpanelw -lphysfs -lpixman-1 -lreadline -lregex -lrtmp -lssh2 -lssl -lsystre -ltasn1 -ltclstub86 -ltermcap -ltheora -ltheoradec -ltheoraenc -ltkstub86 -ltre -lturbojpeg -lvorbisenc -lwebpdecoder -lwebpdemux -lwebpmux -lole32 -lws2_32 -mwindows  --prefix "/progdir"
+RM = rm -f
+CP = cp -r
+MD = mkdir -p
+ECHO = echo
+CHMOD = chmod
+STRIP = strip
+
+all: $(EXE)
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(EXE): $(OBJS)
+	$(CC) $^ -o $@ $(LDFLAGS)
+	@$(ECHO) " o If there are no errors, the game compiled succesfully"
+
+clean:
+	@$(ECHO) " o Cleaning up source directory"
+	@$(RM) $(SRC)/*.o $(SRC)/*.bak core $(EXE)
+
+install: all
+	@$(ECHO) " o Creating install directory $(BINDIR)"
+	@$(MD) "$(BINDIR)"
+	@$(ECHO) " o Installing game and data to $(BINDIR)"
+	@$(CP) "$(EXE)" $(DATA) "$(BINDIR)"
+	@$(ECHO) " o Creating startup script $(STARTUP)"
+	@$(MD) "$(GAMEDIR)"
+	@$(ECHO) "#!/bin/sh" >"$(STARTUP)"
+	@$(ECHO) "cd \"$(BINDIR)\" && ./$(EXE); cd -" >>"$(STARTUP)"
+	@$(CHMOD) 755 "$(STARTUP)"
+	@$(ECHO) " o Creating application menu entry"
+	@$(MD) "$(ICNDIR)"
+	@$(CP) "$(EXTRADIR)/$(ICON)" "$(ICNDIR)"
+	@$(MD) "$(APPDIR)"
+	@$(CP) "$(EXTRADIR)/$(DESKTOP)" "$(APPDIR)"
+	@$(ECHO) ""
+
+uninstall:
+	@$(ECHO) " o Removing game and data from $(BINDIR)"
+	@$(RM) -r "$(BINDIR)"
+	@$(ECHO) " o Removing startup script $(STARTUP)"
+	@$(RM) "$(STARTUP)"
+	@$(ECHO) " o Removing application menu entry"
+	@$(RM) "$(ICNDIR)/$(ICON)" "$(APPDIR)/$(DESKTOP)"
+	@$(ECHO) ""
+
